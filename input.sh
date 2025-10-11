@@ -2,22 +2,59 @@
 # shellcheck shell=bash
 
 # input.sh - Controlled Input Library
-# A reusable bash library for controlled user input with validation
+# A robust bash library for controlled user input with validation, cursor control, and multiple input modes
+#
+# Features:
+#   - Multiple input modes: text, numeric, password, yesno, email, phone, IPv4, IPv6
+#   - Cursor control: Left/Right arrows, Home/End keys for non-destructive editing
+#   - Validation: Character length, format validation, numeric range validation, custom error messages
+#   - Default values: Gray hint display with Enter to accept
+#   - Prefill mode: Pre-populated editable buffers for modifying existing data
+#   - Error handling: Same-line error redisplay, no screen scrolling on retry
+#   - SIGINT preservation: Saves and restores parent script's Ctrl+C handler
+#   - Clean interface: Returns via stdout, status via exit code
 #
 # Usage:
 #   source input.sh
 #   result=$(controlled_input "prompt" [OPTIONS])
 #
 # Options:
-#   -m, --mode <type>         Input mode: text|numeric|password|yesno|email|phone|ipv4|ipv6
-#   -n, --min <num>           Minimum length (or min value for numeric mode)
-#   -x, --max <num>           Maximum length (or max value for numeric mode)
-#   --min-value <num>         Minimum numeric value (numeric mode only)
-#   --max-value <num>         Maximum numeric value (numeric mode only)
-#   -d, --default <value>     Default value (shown as hint, used if Enter pressed on empty input)
-#   -p, --prefill <value>     Pre-populate buffer with editable value
-#   -e, --error-msg <text>    Custom error message
-#   --allow-empty             Allow empty input
+#   -m, --mode <type>         Input mode: text, numeric, password, yesno, email, phone, ipv4, ipv6
+#   -n, --min <num>           Minimum character length (all modes except yesno)
+#   -x, --max <num>           Maximum character length (all modes except yesno)
+#   --min-value <num>         Minimum numeric value (numeric mode only, validates actual value)
+#   --max-value <num>         Maximum numeric value (numeric mode only, validates actual value)
+#   -d, --default <value>     Default value shown as gray hint [value]: - press Enter to accept
+#   -p, --prefill <value>     Pre-populate input buffer with editable value (cursor at end)
+#   -e, --error-msg <text>    Custom error message to display on validation failure
+#   --allow-empty             Allow empty input (default: false, not applicable with -d or -p)
+#
+# Examples:
+#   # Text with length constraints
+#   username=$(controlled_input "Username:" -m text -n 3 -x 20)
+#
+#   # Numeric with range validation
+#   port=$(controlled_input "Port:" -m numeric --min-value 1024 --max-value 65535)
+#
+#   # Password with minimum length
+#   password=$(controlled_input "Password:" -m password -n 8)
+#
+#   # Yes/No with default
+#   confirm=$(controlled_input "Continue? (Y/n)" -m yesno -d Y)
+#
+#   # Default hint mode (buffer empty, shows hint)
+#   hostname=$(controlled_input "Hostname" -m text -d "localhost")
+#
+#   # Prefill mode (buffer pre-populated, editable)
+#   config=$(controlled_input "Edit path:" -m text -p "/etc/config.conf")
+#
+# Exit Codes:
+#   0 - Valid input returned
+#   1 - User interrupted (Ctrl+C)
+#   2 - Invalid parameters
+#
+# Repository: https://github.com/tkirkland/input.sh
+# License: MIT
 #
 
 # ANSI Color Codes
