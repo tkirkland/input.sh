@@ -30,15 +30,15 @@ result=$(controlled_input "prompt" [OPTIONS])
 
 | Short | Long | Description |
 |-------|------|-------------|
-| `-m` | `--mode` | Input mode (text\|numeric\|password\|yesno\|email\|phone\|ipv4\|ipv6) |
-| `-n` | `--min` | Minimum length (or min value for numeric mode) |
-| `-x` | `--max` | Maximum length (or max value for numeric mode) |
-|      | `--min-value` | Minimum numeric value (numeric mode only) |
-|      | `--max-value` | Maximum numeric value (numeric mode only) |
-| `-d` | `--default` | Default value (shown as hint, used if Enter pressed on empty input) |
-| `-p` | `--prefill` | Pre-populate buffer with editable value |
-| `-e` | `--error-msg` | Custom error message |
-|      | `--allow-empty` | Allow empty input (default: false) |
+| `-m` | `--mode` | Input mode: `text`, `numeric`, `password`, `yesno`, `email`, `phone`, `ipv4`, `ipv6` |
+| `-n` | `--min` | Minimum character length (all modes except yesno) |
+| `-x` | `--max` | Maximum character length (all modes except yesno) |
+|      | `--min-value` | Minimum numeric value (numeric mode only, validates actual value) |
+|      | `--max-value` | Maximum numeric value (numeric mode only, validates actual value) |
+| `-d` | `--default` | Default value shown as gray hint `[value]:` - press Enter on empty input to accept |
+| `-p` | `--prefill` | Pre-populate input buffer with editable value (cursor at end) |
+| `-e` | `--error-msg` | Custom error message to display on validation failure |
+|      | `--allow-empty` | Allow empty input (default: false, not applicable with `-d` or `-p`) |
 
 ## Input Modes
 
