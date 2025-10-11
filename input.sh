@@ -10,9 +10,12 @@
 #
 # Options:
 #   -m, --mode <type>         Input mode: text|numeric|password|yesno|email|phone|ipv4|ipv6
-#   -n, --min <num>           Minimum length
-#   -x, --max <num>           Maximum length
-#   -d, --default <value>     Default value
+#   -n, --min <num>           Minimum length (or min value for numeric mode)
+#   -x, --max <num>           Maximum length (or max value for numeric mode)
+#   --min-value <num>         Minimum numeric value (numeric mode only)
+#   --max-value <num>         Maximum numeric value (numeric mode only)
+#   -d, --default <value>     Default value (shown as hint, used if Enter pressed on empty input)
+#   -p, --prefill <value>     Pre-populate buffer with editable value
 #   -e, --error-msg <text>    Custom error message
 #   --allow-empty             Allow empty input
 #
@@ -39,7 +42,10 @@ controlled_input() {
     local mode="text"
     local min_length=0
     local max_length=999
+    local min_value=""
+    local max_value=""
     local default_value=""
+    local prefill_value=""
     local error_msg=""
     local allow_empty=false
 
@@ -70,8 +76,20 @@ controlled_input() {
                 default_value="$2"
                 shift 2
                 ;;
+            -p | --prefill)
+                prefill_value="$2"
+                shift 2
+                ;;
             -e | --error-msg)
                 error_msg="$2"
+                shift 2
+                ;;
+            --min-value)
+                min_value="$2"
+                shift 2
+                ;;
+            --max-value)
+                max_value="$2"
                 shift 2
                 ;;
             --allow-empty)
@@ -108,7 +126,7 @@ controlled_input() {
         stty -echo -icanon min 1 time 0 2> /dev/null
 
         # Get input
-        result=$(_input_loop "$prompt" "$mode" "$max_length" "$default_value")
+        result=$(_input_loop "$prompt" "$mode" "$max_length" "$default_value" "$prefill_value")
         local input_status=$?
 
         # Restore terminal immediately after input
@@ -121,7 +139,7 @@ controlled_input() {
 
         # Validate input
         local validation_error=""
-        validation_error=$(_validate_input "$result" "$mode" "$min_length" "$max_length" "$allow_empty")
+        validation_error=$(_validate_input "$result" "$mode" "$min_length" "$max_length" "$allow_empty" "$min_value" "$max_value")
 
         if [[ -z $validation_error   ]]; then
             # Input is valid - clear error if there was one
@@ -151,28 +169,24 @@ _input_loop() {
     local mode="$2"
     local max_length="$3"
     local default_value="$4"
+    local prefill_value="$5"
     local buffer=""
     local cursor_pos=0
     local display_default=""
 
-    # Initialize buffer with default value if provided
-    if [[ -n $default_value   ]]; then
-        buffer="$default_value"
+    # Handle prefill mode: populate buffer with editable value
+    if [[ -n $prefill_value ]]; then
+        buffer="$prefill_value"
         cursor_pos=${#buffer}
-        display_default=" ${COLOR_GRAY}[${default_value}]${COLOR_RESET}"
-  fi
-
-    # Display prompt
-    printf "%s%s " "$prompt" "$display_default" >&2
-
-    # Display initial buffer if any
-    if [[ -n $buffer   ]]; then
-        if [[ $mode == "password"   ]]; then
-            printf '%*s' "${#buffer}" '' | tr ' ' '*' >&2
-    else
-            printf '%s' "$buffer" >&2
     fi
+
+    # Set display hint for default value (shown in brackets, not in buffer)
+    if [[ -n $default_value   ]]; then
+        display_default=$(printf " %b[%s]%b:" "$COLOR_GRAY" "$default_value" "$COLOR_RESET")
   fi
+
+    # Display prompt with default hint
+    printf "%s%s " "$prompt" "$display_default" >&2
 
     # Special handling for yesno mode
     if [[ $mode == "yesno"   ]]; then
@@ -181,6 +195,15 @@ _input_loop() {
         printf "\n" >&2
         echo "$result"
         return "$EXIT_SUCCESS"
+  fi
+
+    # Display prefilled buffer if any (for non-yesno modes)
+    if [[ -n $buffer   ]]; then
+        if [[ $mode == "password"   ]]; then
+            printf '%*s' "${#buffer}" '' | tr ' ' '*' >&2
+    else
+            printf '%s' "$buffer" >&2
+    fi
   fi
 
     # Main character input loop
@@ -196,6 +219,16 @@ _input_loop() {
         # Check for Enter key
         if [[ -z $char   ]]; then
             # Enter pressed (read returns empty string for newline with -n1)
+            # Use default value if buffer is empty and default is set
+            if [[ -z $buffer ]] && [[ -n $default_value ]]; then
+                buffer="$default_value"
+                # Echo the default value as visual feedback
+                if [[ $mode == "password" ]]; then
+                    printf '%*s' "${#buffer}" '' | tr ' ' '*' >&2
+                else
+                    printf '%s' "$buffer" >&2
+                fi
+            fi
             printf "\n" >&2
             echo "$buffer"
             return $EXIT_SUCCESS
@@ -352,8 +385,13 @@ _handle_yesno() {
         if [[ -z $char   ]] && [[ -n $default_value   ]]; then
             local default_upper
             default_upper=$(echo "$default_value" | tr '[:lower:]' '[:upper:]')
-            printf "%s" "$default_upper" >&2
-            echo "$default_upper"
+            if [[ $default_upper == "Y" ]]; then
+                printf "Yes" >&2
+                echo "Y"
+            else
+                printf "No" >&2
+                echo "N"
+            fi
             return "$EXIT_SUCCESS"
     fi
 
@@ -361,11 +399,11 @@ _handle_yesno() {
         char=$(echo "$char" | tr '[:lower:]' '[:upper:]')
 
         if [[ $char == "Y"   ]]; then
-            printf "Y" >&2
+            printf "Yes" >&2
             echo "Y"
             return $EXIT_SUCCESS
     elif     [[ $char == "N"   ]]; then
-            printf "N" >&2
+            printf "No" >&2
             echo "N"
             return $EXIT_SUCCESS
     fi
@@ -381,6 +419,8 @@ _validate_input() {
     local min_length="$3"
     local max_length="$4"
     local allow_empty="$5"
+    local min_value="$6"
+    local max_value="$7"
 
     # Check empty input
     if [[ -z $input   ]]; then
@@ -436,6 +476,15 @@ _validate_input() {
                 echo "Input must be numeric"
                 return
       fi
+            # Check numeric range if specified
+            if [[ -n $min_value ]] && [[ $input -lt $min_value ]]; then
+                echo "Value must be at least $min_value"
+                return
+            fi
+            if [[ -n $max_value ]] && [[ $input -gt $max_value ]]; then
+                echo "Value must be at most $max_value"
+                return
+            fi
             ;;
   esac
 }
