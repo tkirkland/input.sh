@@ -1,6 +1,7 @@
 #!/bin/bash
-#
-# input.sh - Controlled Input Library (FIXED V3)
+# shellcheck shell=bash
+
+# input.sh - Controlled Input Library
 # A reusable bash library for controlled user input with validation
 #
 # Usage:
@@ -56,7 +57,7 @@ controlled_input() {
     # Parse arguments
     if [[ $# -eq 0 ]]; then
         echo "Error: Prompt required" >&2
-        return $EXIT_INVALID_PARAMS
+        return "$EXIT_INVALID_PARAMS"
     fi
 
     prompt="$1"
@@ -90,7 +91,7 @@ controlled_input() {
                 ;;
             *)
                 echo "Error: Unknown option: $1" >&2
-                return $EXIT_INVALID_PARAMS
+                return "$EXIT_INVALID_PARAMS"
                 ;;
         esac
     done
@@ -101,7 +102,7 @@ controlled_input() {
             ;;
         *)
             echo "Error: Invalid mode: $mode" >&2
-            return $EXIT_INVALID_PARAMS
+            return "$EXIT_INVALID_PARAMS"
             ;;
     esac
 
@@ -112,7 +113,8 @@ controlled_input() {
 
     while $retry; do
         # Save terminal state for each attempt
-        local old_stty=$(stty -g 2>/dev/null)
+        local old_stty
+        old_stty=$(stty -g 2>/dev/null)
 
         # Setup terminal for raw input
         stty -echo -icanon min 1 time 0 2>/dev/null
@@ -126,7 +128,7 @@ controlled_input() {
 
         # Check if user interrupted
         if [[ $input_status -eq $EXIT_INTERRUPTED ]]; then
-            return $EXIT_INTERRUPTED
+            return "$EXIT_INTERRUPTED"
         fi
 
         # Validate input
@@ -150,7 +152,7 @@ controlled_input() {
 
     # Output result
     echo "$result"
-    return $EXIT_SUCCESS
+    return "$EXIT_SUCCESS"
 }
 
 #
@@ -190,10 +192,11 @@ _input_loop() {
 
     # Special handling for yesno mode
     if [[ "$mode" == "yesno" ]]; then
-        local result=$(_handle_yesno "$default_value")
+        local result
+        result=$(_handle_yesno "$default_value")
         printf "\n" >&2
         echo "$result"
-        return $EXIT_SUCCESS
+        return "$EXIT_SUCCESS"
     fi
 
     # Main character input loop
@@ -361,13 +364,13 @@ _handle_yesno() {
         if [[ "$char" == $'\x03' ]]; then
             return $EXIT_INTERRUPTED
         fi
-
         # Check for Enter with default
         if [[ -z "$char" ]] && [[ -n "$default_value" ]]; then
-            local default_upper=$(echo "$default_value" | tr '[:lower:]' '[:upper:]')
-            printf "$default_upper" >&2
+            local default_upper
+            default_upper=$(echo "$default_value" | tr '[:lower:]' '[:upper:]')
+            printf "%s" "$default_upper" >&2
             echo "$default_upper"
-            return $EXIT_SUCCESS
+            return "$EXIT_SUCCESS"
         fi
 
         # Convert to uppercase
@@ -495,7 +498,8 @@ _validate_ipv6() {
     fi
 
     # Count colons
-    local colon_count=$(echo "$ip" | tr -cd ':' | wc -c)
+    local colon_count
+    colon_count=$(echo "$ip" | tr -cd ':' | wc -c)
 
     if [[ $colon_count -lt 2 ]] || [[ $colon_count -gt 7 ]]; then
         return 1
