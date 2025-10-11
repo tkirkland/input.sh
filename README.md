@@ -6,8 +6,9 @@ A robust bash library for controlled user input with validation, cursor control,
 
 - **Multiple input modes**: text, numeric, password, yesno, email, phone, IPv4, IPv6
 - **Cursor control**: Left/Right arrows, Home/End keys for non-destructive editing
-- **Validation**: Min/max length, format validation, custom error messages
-- **Default values**: Pre-populated, editable defaults displayed in gray
+- **Validation**: Min/max length, format validation, numeric range validation, custom error messages
+- **Default values**: Gray hint display with Enter to accept
+- **Prefill mode**: Pre-populated editable buffers for modifying existing data
 - **Error handling**: Same-line error redisplay, no screen scrolling on retry
 - **SIGINT preservation**: Saves and restores parent script's Ctrl+C handler
 - **Clean interface**: Returns via stdout, status via exit code
@@ -30,9 +31,12 @@ result=$(controlled_input "prompt" [OPTIONS])
 | Short | Long | Description |
 |-------|------|-------------|
 | `-m` | `--mode` | Input mode (text\|numeric\|password\|yesno\|email\|phone\|ipv4\|ipv6) |
-| `-n` | `--min` | Minimum length |
-| `-x` | `--max` | Maximum length |
-| `-d` | `--default` | Default value (pre-populated, editable) |
+| `-n` | `--min` | Minimum length (or min value for numeric mode) |
+| `-x` | `--max` | Maximum length (or max value for numeric mode) |
+|      | `--min-value` | Minimum numeric value (numeric mode only) |
+|      | `--max-value` | Maximum numeric value (numeric mode only) |
+| `-d` | `--default` | Default value (shown as hint, used if Enter pressed on empty input) |
+| `-p` | `--prefill` | Pre-populate buffer with editable value |
 | `-e` | `--error-msg` | Custom error message |
 |      | `--allow-empty` | Allow empty input (default: false) |
 
@@ -49,10 +53,15 @@ name=$(controlled_input "Enter your name:" -m text -n 3 -x 50)
 ### Numeric Mode
 - **Allowed characters**: Digits 0-9 only
 - **Validation**: Integer values only (no floats)
+- **Range validation**: Use `--min-value` and `--max-value` for numeric range constraints
 - **Example**: Ages, quantities, IDs
 
 ```bash
+# Character length constraint
 age=$(controlled_input "Enter your age:" -m numeric -n 1 -x 3)
+
+# Numeric range constraint
+age=$(controlled_input "Enter your age:" -m numeric --min-value 1 --max-value 120)
 ```
 
 ### Password Mode
@@ -66,6 +75,7 @@ password=$(controlled_input "Enter password:" -m password -n 8 -x 20)
 
 ### Yes/No Mode
 - **Input**: Single character (Y/y/N/n)
+- **Display**: Shows "Yes" or "No" for better readability
 - **Default**: Specified via capital letter in prompt
   - `(Y/n)` - default is Y, press Enter to accept
   - `(y/N)` - default is N, press Enter to accept
@@ -73,6 +83,7 @@ password=$(controlled_input "Enter password:" -m password -n 8 -x 20)
 
 ```bash
 confirm=$(controlled_input "Continue? (Y/n)" -m yesno -d Y)
+# Displays "Yes" when accepted, returns "Y"
 ```
 
 ### Email Mode
@@ -119,10 +130,10 @@ ipv6=$(controlled_input "Enter IPv6 address:" -m ipv6)
 username=$(controlled_input "Username:" -m text -n 3 -x 20)
 ```
 
-### Numeric input with custom error
+### Numeric input with range validation
 ```bash
-port=$(controlled_input "Port (1024-65535):" \
-    -m numeric -n 4 -x 5 \
+port=$(controlled_input "Port:" \
+    -m numeric --min-value 1024 --max-value 65535 \
     -e "Invalid port! Must be between 1024-65535.")
 ```
 
@@ -137,10 +148,20 @@ middle_name=$(controlled_input "Middle name (optional):" \
     -m text --allow-empty)
 ```
 
-### Default value (editable)
+### Default value (shown as hint)
 ```bash
 hostname=$(controlled_input "Hostname:" \
     -m text -d "localhost" -n 3 -x 50)
+# Displays: Hostname [localhost]: _
+# Press Enter on empty input to accept "localhost"
+```
+
+### Prefill mode (editable buffer)
+```bash
+config=$(controlled_input "Edit config:" \
+    -m text -p "/etc/myapp/config.conf" -n 3 -x 100)
+# Buffer pre-populated with "/etc/myapp/config.conf"
+# User can edit, cursor at end
 ```
 
 ### Yes/No confirmation with default
@@ -179,7 +200,8 @@ When validation fails:
 ### Colors
 - **Prompt**: Default terminal color
 - **Error**: Red text
-- **Default value**: Gray text in brackets `[default]`
+- **Default value**: Gray text in brackets with colon `[default]:`
+- **Prefill buffer**: Normal terminal color (editable text)
 
 ### Error Display Example
 ```
