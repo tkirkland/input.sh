@@ -206,10 +206,10 @@ When validation fails:
 ### Error Display Example
 ```
 Enter value (20-80): 85
-Invalid value! Must be between 20-80. Re-enter.
+Value must be at least 20
 Enter value (20-80): _
 ```
-(Screen doesn't scroll, prompt stays on same line)
+Error shown in red, then cleared. Prompt redisplayed on same line without scrolling.
 
 ## Advanced Usage
 
