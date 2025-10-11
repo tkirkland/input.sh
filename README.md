@@ -256,15 +256,20 @@ if [[ "$confirm" == "Y" ]]; then
 fi
 ```
 
-## Testing
+## Examples
 
-Run the included test script to see all features in action:
+Run the included example script to see all features in action:
 
 ```bash
-./test_input.sh
+./example.sh
 ```
 
-This will walk through examples of all input modes with various configurations.
+This comprehensive demonstration covers:
+- All 8 input modes (text, numeric, password, yesno, email, phone, IPv4, IPv6)
+- Character length validation and numeric range validation
+- Default value hints and prefill mode
+- Custom error messages and optional fields
+- Cursor control and editing features
 
 ## Requirements
 
