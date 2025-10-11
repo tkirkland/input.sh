@@ -204,11 +204,9 @@ When validation fails:
 - **Prefill buffer**: Normal terminal color (editable text)
 
 ### Error Display Example
-```
-Enter value (20-80): 85
-Value must be at least 20
-Enter value (20-80): _
-```
+
+![Error display demonstration](docs/error-demo.gif)
+
 Error shown in red, then cleared. Prompt redisplayed on same line without scrolling.
 
 ## Advanced Usage
