@@ -79,6 +79,9 @@ readonly COLOR_RESET='\e[0m'
 readonly COLOR_RED='\e[31m'
 readonly COLOR_GRAY='\e[90m'
 
+# ANSI Text Effects
+readonly BLINK='\e[5m'
+
 # ANSI Cursor Control
 readonly ERASE_LINE=$'\e[2K'
 
@@ -674,8 +677,9 @@ _validate_ipv6() {
 _show_error() {
   local error_msg="$1"
 
-  # Print error in red on the current line
-  printf "%b%s%b\n" "$COLOR_RED" "$error_msg" "$COLOR_RESET" >&2
+  # Print error in red with blinking on the current line
+  printf "%b%b%s%b\n" "$COLOR_RED" "$BLINK" "$error_msg" \
+    "$COLOR_RESET" >&2
 
   # Move the cursor up 2 lines (error and blank line from where input ended)
   printf '\e[2A' >&2
