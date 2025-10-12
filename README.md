@@ -189,17 +189,19 @@ fi
 
 ### Validation Errors
 When validation fails:
-1. Error message displayed in red on new line
+1. Error message displayed in red blinking text on new line
 2. Previous input erased
 3. Prompt redisplayed on same line
 4. User can re-enter without screen scrolling
 5. Error cleared when typing begins
 
+**Note**: The blinking effect uses ANSI escape code `\e[5m` and may not be supported in all terminal emulators.
+
 ## Display Features
 
 ### Colors
 - **Prompt**: Default terminal color
-- **Error**: Red text
+- **Error**: Red blinking text (blink effect is terminal-dependent)
 - **Default value**: Gray text in brackets with colon `[default]:`
 - **Prefill buffer**: Normal terminal color (editable text)
 
@@ -207,7 +209,7 @@ When validation fails:
 
 ![Error display demonstration](docs/error-demo.gif)
 
-Error shown in red, then cleared. Prompt redisplayed on same line without scrolling.
+Error shown in red blinking text, then cleared. Prompt redisplayed on same line without scrolling.
 
 ## Advanced Usage
 
