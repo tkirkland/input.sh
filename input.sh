@@ -677,15 +677,14 @@ _validate_ipv6() {
 _show_error() {
   local error_msg="$1"
 
-  # Print error in red with blinking on the current line
-  printf "%b%b%s%b\n" "$COLOR_RED" "$BLINK" "$error_msg" \
-    "$COLOR_RESET" >&2
+  # Print the error in red with blinking on the current line
+  printf "%b%b%s%b\n" "${COLOR_RED}" "${BLINK}" "${error_msg}" "${COLOR_RESET}" >&2
 
   # Move the cursor up 2 lines (error and blank line from where input ended)
   printf '\e[2A' >&2
 
   # Erase current line
-  printf '%s\r' "$ERASE_LINE" >&2
+  printf '%s\r' "${ERASE_LINE}" >&2
 }
 
 # Export function for use in other scripts
