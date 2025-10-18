@@ -63,7 +63,7 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "Example 5: Yes/No Mode - Default Yes"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Press Enter to accept default [Y]"
-confirm_y=$(controlled_input "Continue? (Y/n)" -m yesno -d Y)
+confirm_y=$(controlled_input "Continue?" -m yesno -d Y)
 if [[ $? -eq 0 ]]; then
     echo "✓ You selected: $confirm_y"
 fi
@@ -74,7 +74,7 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "Example 6: Yes/No Mode - Default No"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Press Enter to accept default [N]"
-confirm_n=$(controlled_input "Delete files? (y/N)" -m yesno -d N)
+confirm_n=$(controlled_input "Delete files?" -m yesno -d N)
 if [[ $? -eq 0 ]]; then
     echo "✓ You selected: $confirm_n"
 fi

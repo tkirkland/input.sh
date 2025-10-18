@@ -246,6 +246,23 @@ _input_loop() {
     cursor_pos=${#buffer}
   fi
 
+  # Auto-append (Y/n) or (y/N) for yesno mode
+  if [[ $mode == "yesno" ]]; then
+    local yesno_indicator
+    if [[ -n $default_value ]]; then
+      local default_upper
+      default_upper=$(echo "$default_value" | tr '[:lower:]' '[:upper:]')
+      if [[ $default_upper == "Y" ]]; then
+        yesno_indicator=" (Y/n)"
+      else
+        yesno_indicator=" (y/N)"
+      fi
+    else
+      yesno_indicator=" (y/n)"
+    fi
+    prompt="${prompt}${yesno_indicator}"
+  fi
+
   # Set display hint for default value (shown in brackets, not in buffer)
   if [[ -n $default_value ]]; then
     display_default=$(printf " %b[%s]%b:" "$COLOR_GRAY" \
@@ -258,7 +275,6 @@ _input_loop() {
   # Special handling for yesno mode
   if [[ $mode == "yesno" ]]; then
     result=$(_handle_yesno "$default_value")
-    printf "\n" >&2
     echo "$result"
     return "$EXIT_SUCCESS"
   fi
@@ -451,10 +467,10 @@ _handle_yesno() {
       local default_upper
       default_upper=$(echo "$default_value" | tr '[:lower:]' '[:upper:]')
       if [[ $default_upper == "Y" ]]; then
-        printf "Yes" >&2
+        printf "Yes\n" >&2
         echo "Y"
       else
-        printf "No" >&2
+        printf "No\n" >&2
         echo "N"
       fi
       return "$EXIT_SUCCESS"
@@ -464,11 +480,11 @@ _handle_yesno() {
     char=$(echo "$char" | tr '[:lower:]' '[:upper:]')
 
     if [[ $char == "Y" ]]; then
-      printf "Yes" >&2
+      printf "Yes\n" >&2
       echo "Y"
       return "$EXIT_SUCCESS"
     elif [[ $char == "N" ]]; then
-      printf "No" >&2
+      printf "No\n" >&2
       echo "N"
       return "$EXIT_SUCCESS"
     fi

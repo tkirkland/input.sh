@@ -76,14 +76,22 @@ password=$(controlled_input "Enter password:" -m password -n 8 -x 20)
 ### Yes/No Mode
 - **Input**: Single character (Y/y/N/n)
 - **Display**: Shows "Yes" or "No" for better readability
-- **Default**: Specified via capital letter in prompt
-  - `(Y/n)` - default is Y, press Enter to accept
-  - `(y/N)` - default is N, press Enter to accept
+- **Auto-append**: Automatically adds `(Y/n)`, `(y/N)`, or `(y/n)` based on default
+  - `-d Y` → appends `(Y/n)` - default is Y, press Enter to accept
+  - `-d N` → appends `(y/N)` - default is N, press Enter to accept
+  - No default → appends `(y/n)` - requires explicit Y or N
 - **Return**: Uppercase Y or N
 
 ```bash
-confirm=$(controlled_input "Continue? (Y/n)" -m yesno -d Y)
-# Displays "Yes" when accepted, returns "Y"
+# Function automatically appends (Y/n) indicator
+confirm=$(controlled_input "Continue?" -m yesno -d Y)
+# Displays: "Continue? (Y/n) [Y]: Yes"
+# Returns: "Y"
+
+# With default N
+confirm=$(controlled_input "Delete files?" -m yesno -d N)
+# Displays: "Delete files? (y/N) [N]: No"
+# Returns: "N"
 ```
 
 ### Email Mode
@@ -166,7 +174,8 @@ config=$(controlled_input "Edit config:" \
 
 ### Yes/No confirmation with default
 ```bash
-if [[ $(controlled_input "Install updates? (Y/n)" -m yesno -d Y) == "Y" ]]; then
+# Auto-appends (Y/n) indicator
+if [[ $(controlled_input "Install updates?" -m yesno -d Y) == "Y" ]]; then
     echo "Installing updates..."
 fi
 ```
@@ -249,7 +258,7 @@ email=$(controlled_input "Email:" -m email)
 age=$(controlled_input "Age:" -m numeric -n 1 -x 3)
 password=$(controlled_input "Password:" -m password -n 8)
 
-confirm=$(controlled_input "Create account? (Y/n)" -m yesno -d Y)
+confirm=$(controlled_input "Create account?" -m yesno -d Y)
 
 if [[ "$confirm" == "Y" ]]; then
     echo "Account created for $name"
