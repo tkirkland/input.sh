@@ -453,42 +453,48 @@ _handle_yesno() {
   local default_value="$1"
   local char=""
 
-  while true; do
-    if ! IFS= read -r -n1 char; then
-      continue
-    fi
+  # Read single character (terminal is already in raw mode from parent)
+  if ! IFS= read -r -n1 char; then
+    return "$EXIT_INTERRUPTED"
+  fi
 
-    # Check for Ctrl+C
-    if [[ $char == $'\x03' ]]; then
-      return "$EXIT_INTERRUPTED"
-    fi
-    # Check for Enter with default
-    if [[ -z $char ]] && [[ -n $default_value ]]; then
-      local default_upper
-      default_upper=$(echo "$default_value" | tr '[:lower:]' '[:upper:]')
-      if [[ $default_upper == "Y" ]]; then
-        printf "Yes\n" >&2
-        echo "Y"
-      else
-        printf "No\n" >&2
-        echo "N"
-      fi
-      return "$EXIT_SUCCESS"
-    fi
+  # Check for Ctrl+C
+  if [[ $char == $'\x03' ]]; then
+    printf "\n" >&2
+    return "$EXIT_INTERRUPTED"
+  fi
 
-    # Convert to uppercase
-    char=$(echo "$char" | tr '[:lower:]' '[:upper:]')
-
-    if [[ $char == "Y" ]]; then
+  # Check for Enter with default
+  if [[ -z $char ]] && [[ -n $default_value ]]; then
+    local default_upper
+    default_upper=$(echo "$default_value" | tr '[:lower:]' '[:upper:]')
+    if [[ $default_upper == "Y" ]]; then
       printf "Yes\n" >&2
       echo "Y"
-      return "$EXIT_SUCCESS"
-    elif [[ $char == "N" ]]; then
+    else
       printf "No\n" >&2
       echo "N"
-      return "$EXIT_SUCCESS"
     fi
-  done
+    return "$EXIT_SUCCESS"
+  fi
+
+  # Convert to uppercase
+  char=$(echo "$char" | tr '[:lower:]' '[:upper:]')
+
+  if [[ $char == "Y" ]]; then
+    printf "Yes\n" >&2
+    echo "Y"
+    return "$EXIT_SUCCESS"
+  elif [[ $char == "N" ]]; then
+    printf "No\n" >&2
+    echo "N"
+    return "$EXIT_SUCCESS"
+  fi
+
+  # Invalid input - treat as 'N' (no) or could loop back for retry
+  printf "No\n" >&2
+  echo "N"
+  return "$EXIT_SUCCESS"
 }
 
 #
