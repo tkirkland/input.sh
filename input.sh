@@ -272,7 +272,7 @@ _input_loop() {
   # Display prompt with a default hint
   printf "%s%s " "$prompt" "$display_default" >&2
 
-  # Special handling for yesno mode
+  # Special handling for yesyesno mode
   if [[ $mode == "yesno" ]]; then
     result=$(_handle_yesno "$default_value")
     echo "$result"
