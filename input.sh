@@ -269,6 +269,10 @@ _input_loop() {
       "$default_value" "$COLOR_RESET")
   fi
 
+  # Notify string_output.sh we're about to show input (if it's loaded)
+  if declare -F _th_mark_input_context &>/dev/null; then
+    _th_mark_input_context
+  fi
   # Display prompt with a default hint
   printf "%s%s " "$prompt" "$display_default" >&2
 
